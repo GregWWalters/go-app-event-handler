@@ -70,12 +70,57 @@ func Test_reflectEventHandler_Close(t *testing.T) {
 	}
 }
 
-func Test_reflectEventHandler_Deregister(t *testing.T) {
-	// TODO
-	t.SkipNow()
+func Test_reflectEventHandler_Register(t *testing.T) {
+	// Create EventHandler
+	eh := NewEventHandler(EventHandlerOpts{
+		Priority: Small,
+		LogFunc: func(event AppEvent) {
+			t.Logf("received %#v", event)
+		},
+		ErrorFunc: func(err error) {
+			t.Logf("error handling event: %s", err)
+		},
+	})
+	defer eh.Close()
+
+	// Connect channel to EventHandler
+	eventChan := make(chan AppEvent)
+	defer close(eventChan)
+	done, err := eh.Connect(eventChan)
+	if err != nil {
+		t.Fatal("error connecting to EventHandler:", err)
+	}
+
+	// Register EventFunc
+	eventName := "TEST EVENT"
+	calledFunc := false
+	if err := eh.Register(eventName, func(event AppEvent) error {
+		calledFunc = true
+		t.Log("test EventFunc called")
+		return nil
+	}); err != nil {
+		t.Fatal("failed to register EventFunc:", err)
+	}
+
+	// Send event
+	select {
+	case <-done:
+		t.Fatal("EventHandler closed before AppEvent could be sent")
+	default:
+		eventChan <- appEvent{
+			name: eventName,
+			ts:   time.Now(),
+			data: nil,
+		}
+	}
+
+	// Check if EventFunc was called
+	if !calledFunc {
+		t.Error("event function was not called")
+	}
 }
 
-func Test_reflectEventHandler_Register(t *testing.T) {
+func Test_reflectEventHandler_Deregister(t *testing.T) {
 	// TODO
 	t.SkipNow()
 }

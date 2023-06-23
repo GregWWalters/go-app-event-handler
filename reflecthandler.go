@@ -53,11 +53,11 @@ func (h *reflectEventHandler) listen() {
 		if !ok {
 			// remove from channels and cases
 			oldChannels := h.sourceChannels
-			h.sourceChannels = make([]<-chan AppEvent, len(h.sourceChannels)-1)
+			h.sourceChannels = make([]<-chan AppEvent, len(oldChannels)-1)
 			copy(h.sourceChannels, oldChannels[:i])
 			copy(h.sourceChannels[i:], oldChannels[i+1:])
 			oldCases := h.selectCases
-			h.selectCases = make([]reflect.SelectCase, len(h.selectCases)-1)
+			h.selectCases = make([]reflect.SelectCase, len(oldCases)-1)
 			copy(h.selectCases, oldCases[:i])
 			copy(h.selectCases[i:], oldCases[i+1:])
 			if len(h.sourceChannels) > 0 {

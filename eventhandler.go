@@ -67,6 +67,9 @@ func NewEventHandler(opts EventHandlerOpts) EventHandler {
 }
 
 func (h *eventHandler) Close() error {
+	if h.closed {
+		return ErrorHandlerClosed
+	}
 	h.closed = true
 	close(h.done)
 	return nil
