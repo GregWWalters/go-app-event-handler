@@ -29,4 +29,5 @@ type EventHandler interface {
 	Connect(<-chan AppEvent) (<-chan struct{}, error)
 	Register(string, EventFunc) error
 	Deregister(string) bool
+	Close() error
 }

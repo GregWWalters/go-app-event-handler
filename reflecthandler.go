@@ -6,14 +6,14 @@ import "reflect"
 
 // reflectEventHandler implements EventHandler with a Small priority
 type reflectEventHandler struct {
-	eventHandler
+	*eventHandler
 	sourceChannels []<-chan AppEvent
 	selectCases    []reflect.SelectCase
 }
 
 // SECTION: Public Functions
 
-func (h reflectEventHandler) Close() error {
+func (h *reflectEventHandler) Close() error {
 	err := h.eventHandler.Close()
 	h.sourceChannels = nil
 	h.selectCases = nil
@@ -22,7 +22,7 @@ func (h reflectEventHandler) Close() error {
 
 // Connect funnels events from source channels into the select loop by
 // appending to the channels and cases slices.
-func (h reflectEventHandler) Connect(events <-chan AppEvent) (done <-chan struct{}, err error) {
+func (h *reflectEventHandler) Connect(events <-chan AppEvent) (done <-chan struct{}, err error) {
 	if h.closed {
 		return nil, ErrorHandlerClosed
 	}
@@ -35,8 +35,8 @@ func (h reflectEventHandler) Connect(events <-chan AppEvent) (done <-chan struct
 
 // SECTION: Private Functions
 
-func newReflectEventHandler(h eventHandler, _ EventHandlerOpts) reflectEventHandler {
-	handler := reflectEventHandler{
+func newReflectEventHandler(h *eventHandler, _ EventHandlerOpts) *reflectEventHandler {
+	handler := &reflectEventHandler{
 		eventHandler:   h,
 		sourceChannels: nil,
 		selectCases:    nil,
@@ -47,7 +47,7 @@ func newReflectEventHandler(h eventHandler, _ EventHandlerOpts) reflectEventHand
 
 // listen consumes from connected AppEvent channels and returns when all
 // channels are closed. It removes AppEvent channels when they close.
-func (h reflectEventHandler) listen() {
+func (h *reflectEventHandler) listen() {
 	for {
 		i, v, ok := reflect.Select(h.selectCases)
 		if !ok {

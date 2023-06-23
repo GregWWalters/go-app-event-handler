@@ -18,3 +18,10 @@ const (
 func (e EventHandlerError) Error() string {
 	return string(e)
 }
+
+func (e EventHandlerError) Is(target error) bool {
+	if err, ok := target.(EventHandlerError); ok {
+		return string(err) == string(e)
+	}
+	return string(e) == target.Error()
+}
